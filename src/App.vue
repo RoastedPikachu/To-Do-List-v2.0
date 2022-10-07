@@ -145,11 +145,6 @@ export default {
         }
       }
     },
-    message: function(){
-      alert('При вводе элемента списка с повторяющимся текстом добавьте ему номер');
-    },
-    al: function(){
-    },
   },
   components: {
     HeaderComp
