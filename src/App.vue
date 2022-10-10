@@ -1,41 +1,49 @@
-<template @load="al()">
+<template>
   <HeaderComp/>
   <section>
     <div id="firstList">
-      <h2>Список дел</h2>
+      <h2>Список дел:</h2>
       <form>
         <input @keydown="isEnter($event)" id="text" type="text" placeholder="Введите своё дело" v-model="item" required>
         <button @click="addText()" type="button">Добавить в список дел</button>
       </form>
-      <ol id="list1"  @click="del($event)">
+      <ol id="list1"  @click="whatAct($event)">
         <li class="l1" v-for="item of items" :key="item.id">
           <div>
             <p>{{ item.text }}</p>
-            <span><i class="fa-solid fa-xmark"></i></span>
+            <span>
+              <i class="fa-solid fa-pencil"></i>
+              <i class="fa-solid fa-xmark del"></i>
+            </span>
           </div>
         </li>
       </ol>
     </div>
     <div id="secondList">
-      <h2>Список мыслей</h2>
+      <h2>Список мыслей:</h2>
       <form>
         <input @keydown="isEnter($event)" id="idea" type="text" placeholder="Введите свою мысль/идею" v-model="idea" required>
         <button @click="addIdea()" type="button">Добавить в список мыслей</button>
       </form>
-      <ol id="list2" @click="del($event)">
+      <ol id="list2" @click="whatAct($event)">
         <li class="l2" v-for="idea of ideas" :key="idea.id">
           <div>
             <p>{{ idea.text }}</p>
-            <span><i class="fa-solid fa-xmark"></i></span>
+            <span>
+              <i class="fa-solid fa-pencil"></i>
+              <i class="fa-solid fa-xmark del"></i>
+            </span>
           </div>
         </li>
       </ol>
     </div>
   </section>
+  <FooterComp/>
 </template>
 
 <script>
-import HeaderComp from './components/HeaderComp.vue'
+import HeaderComp from './components/HeaderComp.vue';
+import FooterComp from './components/FooterComp.vue';
 
 export default {
   name: 'App',
@@ -44,16 +52,18 @@ export default {
       idea: '',
       item: '',
       nodeValue: '',
+      prevText: '',
+      count: 0,
       startId: 0,
-      itemId: 0,
-      ideaId: 1,
-      isEmpty: 1,
+      itemId: JSON.parse(localStorage.getItem('itemId')),
+      ideaId: JSON.parse(localStorage.getItem('ideaId')),
+      index: 0,
       itemEl: {},
       ideaEl: {},
-      itemArr: JSON.parse(localStorage.getItem('items')) || ['Например: Сходить на пробежку'],
-      ideaArr:  JSON.parse(localStorage.getItem('ideas')) || ['Например: Хорошо было бы купить беговую дорожку'],
-      ideas: JSON.parse(localStorage.getItem('ideas')) || ['Например: Хорошо было бы купить беговую дорожку'],
-      items: JSON.parse(localStorage.getItem('items')) || ['Например: Сходить на пробежку'],
+      itemArr:  JSON.parse(localStorage.getItem('items')) || [],
+      ideaArr:  JSON.parse(localStorage.getItem('ideas')) || [],
+      ideas: JSON.parse(localStorage.getItem('ideas')) || [],
+      items: JSON.parse(localStorage.getItem('items')) || [], 
     }
   },
   methods: {
@@ -62,10 +72,20 @@ export default {
 
         event.preventDefault();
 
+        if (event.target.tagName == 'TEXTAREA'){
+
+          this.edited(event, event.target.value);
+
+        } 
+
         if (event.target.getAttribute('id') == 'text'){
+
           this.addText();
+
         } else {
+
           this.addIdea();
+
         }
       }
     },
@@ -78,11 +98,13 @@ export default {
 
         this.itemArr.push(this.itemEl);
         localStorage.setItem('items', JSON.stringify(this.itemArr));
+        localStorage.setItem('itemId', JSON.stringify(this.itemId));
         this.items = JSON.parse(localStorage.getItem('items'));
 
         this.itemId++;  
         this.item = '';
         this.itemEl = {};
+
       }
     },
     addIdea: function(){
@@ -93,11 +115,13 @@ export default {
 
         this.ideaArr.push(this.ideaEl);
         localStorage.setItem('ideas', JSON.stringify(this.ideaArr));
+        localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
         this.ideas = JSON.parse(localStorage.getItem('ideas'));
         
         this.ideaId++;
         this.idea = '';
         this.ideaEl = {};
+
       }
     },
     del: function(event){
@@ -105,49 +129,138 @@ export default {
 
         event.target.closest('li').remove();
         this.nodeValue = event.target.parentNode.previousSibling.textContent;
+
         let arr = [];
 
         if (event.target.closest('li').className == 'l1'){
 
           arr = JSON.parse(localStorage.getItem('items'));
+
         } else if (event.target.closest('li').className == 'l2') {
 
           arr = JSON.parse(localStorage.getItem('ideas'));
+
         }
 
         for (let item of arr){
-            if (item.text == this.nodeValue){
+          if (item.text == this.nodeValue){
 
-              arr = arr.filter(el => el.id != item.id);
-              this.startId = item.id;
+            this.startId = item.id;
+            arr = arr.filter(el => el.id != item.id);
             
-              break;
-            }
+          } else if(item.id > this.startId) {
+          
+            item.id--;
+
+          }
         }
 
         if (event.target.closest('li').className == 'l1'){
 
+          this.itemId--;      
+          this.itemArr = arr;
+          this.items = arr
+
           localStorage.setItem('items', JSON.stringify(arr));
-          this.items = JSON.parse(localStorage.getItem('items'));
+          localStorage.setItem('itemId', JSON.stringify(this.itemId));
+
         } else if (event.target.closest('li').className == 'l2') {
 
+          this.ideaId--;     
+          this.ideaArr = arr;
+          this.ideas = arr;
+
           localStorage.setItem('ideas', JSON.stringify(arr));
-          this.ideas = JSON.parse(localStorage.getItem('ideas'));
+          localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
+
+
         }
 
-        for (let item of arr){
-
-          if (item.id > this.startId){
-
-            item.id--;
-            this.itemId--;
-          }
-        }
       }
     },
+    whatAct: function(event){
+      if (event.target.classList.contains('del')){
+
+        this.del(event);
+
+      } else {
+
+        this.edit(event);
+
+      }
+    },
+    edit: function(event){
+      if (event.target.parentNode.tagName == 'SPAN' && this.count < 1){
+
+        let parentNode = event.target.closest('div');
+
+        let editInput = document.createElement('textarea');
+        editInput.value = event.target.parentNode.previousSibling.textContent;
+        this.prevText = editInput.value;
+
+        parentNode.replaceChild(editInput, parentNode.children[0]);
+        
+        parentNode.children[0].addEventListener('keydown', this.isEnter);
+        this.count++;
+
+      }
+    },
+    edited: function(event, value){
+
+      this.nodeValue = value;
+
+      let arr = [];
+
+      if (event.target.closest('li').className == 'l1'){
+
+        arr = JSON.parse(localStorage.getItem('items'));
+
+      } else if (event.target.closest('li').className == 'l2') {
+
+        arr = JSON.parse(localStorage.getItem('ideas'));
+
+      }
+
+      for (let item of arr){
+        if (item.text == this.prevText){
+
+          let valueObj = {text: value, id: item.id}
+            
+          arr.splice(item.id, 1, valueObj);
+
+          break;
+
+        }
+      }
+
+      if (event.target.closest('li').className == 'l1'){
+
+        this.itemArr = arr;
+        localStorage.setItem('items', JSON.stringify(arr));
+        this.items = JSON.parse(localStorage.getItem('items'));
+
+      } else if (event.target.closest('li').className == 'l2') {
+
+        this.ideaArr = arr;
+        localStorage.setItem('ideas', JSON.stringify(arr));
+        this.ideas = JSON.parse(localStorage.getItem('ideas'));
+
+      }
+
+      let parentNode = event.target.closest('div');
+
+      let blockP = document.createElement('p');
+      blockP.innerHTML = this.nodeValue;
+
+      parentNode.replaceChild(blockP, parentNode.children[0]);
+
+      this.count = 0;
+
+    }
   },
   components: {
-    HeaderComp
+    HeaderComp,
+    FooterComp
   }
 }
 </script>
@@ -168,8 +281,9 @@ export default {
     display: flex;
     justify-content: space-around;
     align-items: flex-start;
-    margin-top: 50px;
+    margin-top: 50px; 
     width: 100%;
+    min-height: 600px;
     height: auto;
     background-color: rgb(255, 245, 232);
     h2 {
@@ -252,14 +366,30 @@ export default {
             color: rgb(76, 99, 0);
             font-family: 'Marck Script', cursive;
             p {
-              width: 95%;
+              width: 87.5%;
               font-size: 22px;
+              word-wrap: break-word;
+            }
+
+            textarea {
+              width: 87.5%;
+              border: 0;
+              color: rgb(76, 99, 0);
+              font-size: 22px;
+              font-family: 'Marck Script', cursive;
+              outline: none;
+              resize: none;
             }
 
             span {
+              display: flex;
+              justify-content: space-between;
+              width: 12.5%;
               color: black;
               font-size: 20px;
-              cursor: pointer;
+              i {
+                cursor: pointer;
+              }
             }
           } 
         }
@@ -347,15 +477,30 @@ export default {
             color: rgb(76, 99, 0);
             font-family: 'Marck Script', cursive;
             p {
-              width: 90%;
+              width: 87.5%;
               font-size: 22px;
+              word-wrap: break-word;
+            }
+
+            textarea {
+              width: 87.5%;
+              border: 0;
+              color: rgb(76, 99, 0);
+              font-size: 22px;
+              font-family: 'Marck Script', cursive;
+              outline: none;
+              resize: none;
             }
           
             span {
-              margin-left: 5%;
+              display: flex;
+              justify-content: space-between;
+              width: 12.5%;
               color: black;
               font-size: 20px;
-              cursor: pointer;
+              i {
+                cursor: pointer;
+              }
             }
           }
         }

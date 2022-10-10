@@ -26,7 +26,7 @@ export default {
     align-items: center;
     width: 100%;
     height: 100px;
-    background: rgb(67, 67, 67);
+    background: rgb(76, 99, 0);
     color: white;
     font-size: 22px;
     font-family: 'Montserrat Alternates', sans-serif;
