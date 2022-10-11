@@ -1,3 +1,4 @@
+
 <template>
   <HeaderComp/>
   <section>
@@ -44,7 +45,6 @@
 <script>
 import HeaderComp from './components/HeaderComp.vue';
 import FooterComp from './components/FooterComp.vue';
-
 export default {
   name: 'App',
   data(){
@@ -54,9 +54,8 @@ export default {
       nodeValue: '',
       prevText: '',
       count: 0,
-      startId: 0,
-      itemId: JSON.parse(localStorage.getItem('itemId')),
-      ideaId: JSON.parse(localStorage.getItem('ideaId')),
+      itemId: JSON.parse(localStorage.getItem('itemId')) || 0,
+      ideaId: JSON.parse(localStorage.getItem('ideaId')) || 0,
       index: 0,
       itemEl: {},
       ideaEl: {},
@@ -77,7 +76,6 @@ export default {
           this.edited(event, event.target.value);
 
         } 
-
         if (event.target.getAttribute('id') == 'text'){
 
           this.addText();
@@ -90,21 +88,21 @@ export default {
       }
     },
     addText: function(){
-
       if (this.item != ''){
+
+        this.itemId++;  
 
         this.itemEl.text = this.item;
         this.itemEl.id = this.itemId;
-
         this.itemArr.push(this.itemEl);
+
         localStorage.setItem('items', JSON.stringify(this.itemArr));
         localStorage.setItem('itemId', JSON.stringify(this.itemId));
+        console.log(JSON.parse(localStorage.getItem('items')))
         this.items = JSON.parse(localStorage.getItem('items'));
 
-        this.itemId++;  
         this.item = '';
         this.itemEl = {};
-
       }
     },
     addIdea: function(){
@@ -112,8 +110,8 @@ export default {
 
         this.ideaEl.text = this.idea;
         this.ideaEl.id = this.ideaId;
-
         this.ideaArr.push(this.ideaEl);
+
         localStorage.setItem('ideas', JSON.stringify(this.ideaArr));
         localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
         this.ideas = JSON.parse(localStorage.getItem('ideas'));
@@ -121,7 +119,6 @@ export default {
         this.ideaId++;
         this.idea = '';
         this.ideaEl = {};
-
       }
     },
     del: function(event){
@@ -129,7 +126,6 @@ export default {
 
         event.target.closest('li').remove();
         this.nodeValue = event.target.parentNode.previousSibling.textContent;
-
         let arr = [];
 
         if (event.target.closest('li').className == 'l1'){
@@ -143,21 +139,19 @@ export default {
         }
 
         for (let item of arr){
+          console.log('i');
+
           if (item.text == this.nodeValue){
 
-            this.startId = item.id;
             arr = arr.filter(el => el.id != item.id);
-            
-          } else if(item.id > this.startId) {
-          
-            item.id--;
 
+            break;  
           }
+
         }
 
         if (event.target.closest('li').className == 'l1'){
-
-          this.itemId--;      
+      
           this.itemArr = arr;
           this.items = arr
 
@@ -166,19 +160,16 @@ export default {
 
         } else if (event.target.closest('li').className == 'l2') {
 
-          this.ideaId--;     
           this.ideaArr = arr;
           this.ideas = arr;
 
           localStorage.setItem('ideas', JSON.stringify(arr));
           localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
-
-
         }
-
       }
     },
     whatAct: function(event){
+
       if (event.target.classList.contains('del')){
 
         this.del(event);
@@ -193,22 +184,19 @@ export default {
       if (event.target.parentNode.tagName == 'SPAN' && this.count < 1){
 
         let parentNode = event.target.closest('div');
-
         let editInput = document.createElement('textarea');
+
         editInput.value = event.target.parentNode.previousSibling.textContent;
         this.prevText = editInput.value;
-
         parentNode.replaceChild(editInput, parentNode.children[0]);
         
         parentNode.children[0].addEventListener('keydown', this.isEnter);
         this.count++;
-
       }
     },
     edited: function(event, value){
 
       this.nodeValue = value;
-
       let arr = [];
 
       if (event.target.closest('li').className == 'l1'){
@@ -221,17 +209,20 @@ export default {
 
       }
 
-      for (let item of arr){
-        if (item.text == this.prevText){
+      let valueObj = {};
+      let index = 0;
+      let bool = this.prevText;
 
-          let valueObj = {text: value, id: item.id}
-            
-          arr.splice(item.id, 1, valueObj);
+      arr.forEach(function(item, i){
+        if (item.text == bool){
 
-          break;
-
+          valueObj = {text: value, id: item.id};
+          index = i;
+      
         }
-      }
+      });
+
+      arr.splice(index, 1, valueObj);
 
       if (event.target.closest('li').className == 'l1'){
 
@@ -248,14 +239,12 @@ export default {
       }
 
       let parentNode = event.target.closest('div');
-
       let blockP = document.createElement('p');
       blockP.innerHTML = this.nodeValue;
 
       parentNode.replaceChild(blockP, parentNode.children[0]);
 
       this.count = 0;
-
     }
   },
   components: {
@@ -267,16 +256,13 @@ export default {
 
 <style lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=Montserrat+Alternates&display=swap');
-
   *{
     margin:0;
     padding:0;
   }
-
   body {
     background-color: rgb(255, 245, 232);
   }
-
   section {
     display: flex;
     justify-content: space-around;
@@ -292,7 +278,6 @@ export default {
       font-size: 34px;
       font-family:  'Marck Script', cursive;
     }
-
     #firstList {
       display: flex;
       justify-content: center;
@@ -318,7 +303,6 @@ export default {
           font-family: 'Montserrat Alternates', sans-serif;
           outline: none;
         }
-
         button {
           margin-top: 30px;
           width: 55%;
@@ -340,7 +324,6 @@ export default {
           transform: translate(1px, 3px);
         }
       }
-
       #list1 {
         display: flex;
         justify-content: flex-start;
@@ -370,7 +353,6 @@ export default {
               font-size: 22px;
               word-wrap: break-word;
             }
-
             textarea {
               width: 87.5%;
               border: 0;
@@ -380,7 +362,6 @@ export default {
               outline: none;
               resize: none;
             }
-
             span {
               display: flex;
               justify-content: space-between;
@@ -395,7 +376,6 @@ export default {
         }
       }
     }
-
     #secondList {
       display: flex;
       justify-content: center;
@@ -411,7 +391,6 @@ export default {
         font-size: 34px;
         font-family:  'Marck Script', cursive;
       }
-
       form {
           display: flex;
           justify-content: center;
@@ -428,7 +407,6 @@ export default {
             font-family: 'Montserrat Alternates', sans-serif;
             outline: none;
           }
-
           button {
             margin-top: 30px;
             width: 60%;
@@ -451,7 +429,6 @@ export default {
           }
         }
       }
-
       #list2 {
         display: flex;
         justify-content: flex-start;
@@ -481,7 +458,6 @@ export default {
               font-size: 22px;
               word-wrap: break-word;
             }
-
             textarea {
               width: 87.5%;
               border: 0;
@@ -500,6 +476,74 @@ export default {
               font-size: 20px;
               i {
                 cursor: pointer;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    @media (max-width: 425px){
+      section {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        #firstList {
+          width: 85%;
+          form {
+            input {
+              font-size: 16px;
+            }
+
+            button {
+              width: 65%;
+              font-size: 12px;
+            }
+          }
+
+          #list1 {
+            justify-content: center;
+            margin-left: 30px;
+            width: 80%;
+            li {
+              div {
+                p {
+                  width: 80%;
+                }
+
+                span {
+                  width: 20%;
+                  font-size: 18px;
+                }
+              }
+            }
+          }   
+        }
+        #secondList {
+          margin-top: 50px;
+          width: 85%;
+          form {
+            input {
+              font-size: 16px;
+            }
+            button {
+              font-size: 12px;
+            }
+          }
+          #list2 {
+            justify-content: center;
+            margin-left: 30px;
+            width: 80%;
+            li {
+              div {
+                p {
+                  width: 80%;
+                }
+
+                span {
+                  width: 20%;
+                  font-size: 18px;
+                }
               }
             }
           }

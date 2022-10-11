@@ -31,4 +31,10 @@ export default {
     font-size: 22px;
     font-family: 'Montserrat Alternates', sans-serif;
   }
+  @media (max-width: 425px){
+    header {
+      font-size: 14px;
+      text-align: center;
+    }
+  }
 </style>
