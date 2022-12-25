@@ -1,43 +1,40 @@
 <template>
   <HeaderComp/>
-  <section>
-    <div id="firstList">
-      <h2>Список дел:</h2>
-      <form>
-        <input @keydown="isEnter($event)" id="text" type="text" placeholder="Введите своё дело" v-model="item" required>
-        <button @click="addText()" type="button">Добавить в список дел</button>
-      </form>
-      <ol id="list1"  @click="whatAct($event)">
-        <li class="l1" v-for="item of items" :key="item.id">
-          <div>
-            <p>{{ item.text }}</p>
-            <span>
-              <i class="fa-solid fa-pencil"></i>
-              <i class="fa-solid fa-xmark del"></i>
-            </span>
-          </div>
+  <section class="darkTheme">
+    <div id="informationBlock">
+      <span id="informationBlock-referenceInformation">
+        <p>Сервис</p>
+        <p>Цена подписки</p>
+        <p>Частота платежа</p>
+      </span>
+      <ul type="none">
+        <li v-for="subscribe of subscribes" :key="subscribe.id">
+          <input type="text" :value="subscribe.service" maxlength="20" disabled>
+          <input type="text" :value="subscribe.cost" maxlength="10" disabled>
+          <input type="text" :value="subscribe.periodicity" maxlength="15" disabled>
+          <i id="editIcon" class="fa-solid fa-pen" @click="editSubscribe($event)"></i>
+          <i id="confirmEditIcon" class="fa-solid fa-check inactive" @click="confirmEditSubscribe($event)"></i>
+          <i class="fa-solid fa-xmark" @click="deleteSubscribe($event)"></i>
         </li>
-      </ol>
-    </div>
-    <div id="secondList">
-      <h2>Список мыслей:</h2>
-      <form>
-        <input @keydown="isEnter($event)" id="idea" type="text" placeholder="Введите свою мысль/идею" v-model="idea" required>
-        <button @click="addIdea()" type="button">Добавить в список мыслей</button>
-      </form>
-      <ol id="list2" @click="whatAct($event)">
-        <li class="l2" v-for="idea of ideas" :key="idea.id">
-          <div>
-            <p>{{ idea.text }}</p>
-            <span>
-              <i class="fa-solid fa-pencil"></i>
-              <i class="fa-solid fa-xmark del"></i>
-            </span>
-          </div>
-        </li>
-      </ol>
-    </div>
+      </ul>
+      <span id="informationBlock-addBlock">
+        <i class="fa-solid fa-plus" @click="modalInteraction"></i>
+        <p>Добавить подписку</p>
+      </span>
+    </div>  
+    <aside></aside>
   </section>
+  <div id="addSubscribeBlock" v-if="visibility" @keydown="isEnter($event)">
+    <h3>Добавление подписки</h3>
+    <input type="text" placeholder="Введите сервис подписки" maxlength="20" v-model="subscribeService">
+    <input type="text" placeholder="Введите цену подписки" maxlength="10" v-model="subscribeCost">
+    <input type="text" placeholder="Введите частоту платежа" maxlength="15" v-model="subscribePeriodicity">
+    <input type="date" placeholder="Введите дату окончания подписки" v-model="subscribeExpirationDate">
+    <span id="buttonsBlock">
+      <button id="buttonsBlock-cancel" @click="modalInteraction">Отменить</button>
+      <button id="buttonsBlock-add" @click="addSubscribe">Добавить подписку</button> 
+    </span>
+  </div>
   <FooterComp/>
 </template>
 
@@ -49,212 +46,93 @@ export default {
   name: 'App',
   data(){
     return {
-      idea: '',
-      item: '',
-      nodeValue: '',
-      prevText: '',
-      count: 0,
-      startId: 0,
-      itemId: JSON.parse(localStorage.getItem('itemId')),
-      ideaId: JSON.parse(localStorage.getItem('ideaId')),
-      index: 0,
-      itemEl: {},
-      ideaEl: {},
-      itemArr:  JSON.parse(localStorage.getItem('items')) || [],
-      ideaArr:  JSON.parse(localStorage.getItem('ideas')) || [],
-      ideas: JSON.parse(localStorage.getItem('ideas')) || [],
-      items: JSON.parse(localStorage.getItem('items')) || [], 
+      subscribes: JSON.parse(localStorage.getItem('subscribes')) || [],
+      index: JSON.parse(localStorage.getItem('index')) || 1,
+      id: 0,
+      editIndex: 0,
+      subscribeService: '',
+      subscribeCost: '',
+      subscribePeriodicity: '',
+      subscribeExpirationDate: '',
+      visibility: false,
     }
   },
   methods: {
-    isEnter: function(event){
-      if (event.code == 'Enter'){
-
-        event.preventDefault();
-
-        if (event.target.tagName == 'TEXTAREA'){
-
-          this.edited(event, event.target.value);
-
-        } 
-
-        if (event.target.getAttribute('id') == 'text'){
-
-          this.addText();
-
-        } else {
-
-          this.addIdea();
-
-        }
-      }
+    modalInteraction() {
+      this.visibility = !this.visibility;
+      document.querySelector('header').classList.toggle('modalActive');
+      document.querySelector('section').classList.toggle('modalActive');
+      document.querySelector('footer').classList.toggle('modalActive');
     },
-    addText: function(){
+    addSubscribe() {
+      let subscribe = {
+        id: this.index,
+        service: (this.subscribeService[0].toUpperCase() + this.subscribeService.slice(1)).trim(),
+        cost: (this.subscribeCost[0].toUpperCase() + this.subscribeCost.slice(1)).trim(),
+        periodicity: (this.subscribePeriodicity[0].toUpperCase() + this.subscribePeriodicity.slice(1)).trim(),
+      } 
 
-      if (this.item != ''){
+      this.index++;
+      this.subscribeService = '';
+      this.subscribeCost = '';
+      this.subscribePeriodicity = '';
+      this.subscribeExpirationDate = '';
 
-        this.itemEl.text = this.item;
-        this.itemId++;  
-        this.itemEl.id = this.itemId;
-
-        this.itemArr.push(this.itemEl);
-        localStorage.setItem('items', JSON.stringify(this.itemArr));
-        localStorage.setItem('itemId', JSON.stringify(this.itemId));
-        this.items = JSON.parse(localStorage.getItem('items'));
-
-        this.item = '';
-        this.itemEl = {};
-
-      }
+      this.subscribes.push(subscribe);
+      localStorage.setItem('index', JSON.stringify(this.index));
+      localStorage.setItem('subscribes', JSON.stringify(this.subscribes));
+      this.modalInteraction();
     },
-    addIdea: function(){
-      if (this.idea != ''){
+    editSubscribe(event) {
+      event.target.classList.toggle('inactive');
+      event.target.nextElementSibling.classList.toggle('inactive');
 
-        this.ideaEl.text = this.idea;
-        this.ideaId++;
-        this.ideaEl.id = this.ideaId;
+      event.target.parentElement.children[0].removeAttribute('disabled');
+      event.target.parentElement.children[1].removeAttribute('disabled');
+      event.target.parentElement.children[2].removeAttribute('disabled');
 
-        this.ideaArr.push(this.ideaEl);
-        localStorage.setItem('ideas', JSON.stringify(this.ideaArr));
-        localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
-        this.ideas = JSON.parse(localStorage.getItem('ideas'));
-        
-        this.idea = '';
-        this.ideaEl = {};
-
-      }
-    },
-    del: function(event){
-      if (event.target.parentNode.tagName == 'SPAN'){
-
-        event.target.closest('li').remove();
-        this.nodeValue = event.target.parentNode.previousSibling.textContent;
-
-        let arr = [];
-
-        if (event.target.closest('li').className == 'l1'){
-
-          arr = JSON.parse(localStorage.getItem('items'));
-
-        } else if (event.target.closest('li').className == 'l2') {
-
-          arr = JSON.parse(localStorage.getItem('ideas'));
-
-        }
-
-        for (let item of arr){
-          if (item.text == this.nodeValue){
-
-            this.startId = item.id;
-            arr = arr.filter(el => el.id != item.id);
-            
-            break;
-          }
-        }
-
-        if (event.target.closest('li').className == 'l1'){
-
-          this.itemArr = arr;
-          this.items = arr
-
-          localStorage.setItem('items', JSON.stringify(arr));
-          localStorage.setItem('itemId', JSON.stringify(this.itemId));
-
-        } else if (event.target.closest('li').className == 'l2') {
-
-          this.ideaArr = arr;
-          this.ideas = arr;
-
-          localStorage.setItem('ideas', JSON.stringify(arr));
-          localStorage.setItem('ideaId', JSON.stringify(this.ideaId));
-
-
-        }
-
-      }
-    },
-    whatAct: function(event){
-      if (event.target.classList.contains('del')){
-
-        this.del(event);
-
-      } else {
-
-        this.edit(event);
-
-      }
-    },
-    edit: function(event){
-      if (event.target.parentNode.tagName == 'SPAN' && this.count < 1){
-
-        let parentNode = event.target.closest('div');
-
-        let editInput = document.createElement('textarea');
-        editInput.value = event.target.parentNode.previousSibling.textContent;
-        this.prevText = editInput.value;
-
-        parentNode.replaceChild(editInput, parentNode.children[0]);
-        
-        parentNode.children[0].addEventListener('keydown', this.isEnter);
-        this.count++;
-
-      }
-    },
-    edited: function(event, value){
-
-      this.nodeValue = value;
-
-      let arr = [];
-
-      if (event.target.closest('li').className == 'l1'){
-
-        arr = JSON.parse(localStorage.getItem('items'));
-
-      } else if (event.target.closest('li').className == 'l2') {
-
-        arr = JSON.parse(localStorage.getItem('ideas'));
-
-      }
-
-      let index = 0;
-      let valueObj = {};
-      let bool = this.prevText;
-
-      arr.every(function(item, i){
-          if (item.text == bool){
-
-          index = i;
-          valueObj = {text: value, id: item.id};
-
-          return false;
+      this.subscribes.forEach((item, index) => {
+        if(item.service == event.target.parentElement.children[0].value) {
+          this.editIndex = index;
+          this.id = item.id;
         }
       });
+    },
+    confirmEditSubscribe(event) {
+      event.target.classList.toggle('inactive');
+      event.target.previousElementSibling.classList.toggle('inactive');
 
-      arr.splice(index, 1, valueObj);
+      event.target.parentElement.children[0].setAttribute('disabled', true);
+      event.target.parentElement.children[1].setAttribute('disabled', true);
+      event.target.parentElement.children[2].setAttribute('disabled', true);
 
-      if (event.target.closest('li').className == 'l1'){
+      let serviceText = event.target.parentElement.children[0].value;
+      let costText = event.target.parentElement.children[1].value;
+      let periodicityText = event.target.parentElement.children[2].value;
 
-        this.itemArr = arr;
-        localStorage.setItem('items', JSON.stringify(arr));
-        this.items = JSON.parse(localStorage.getItem('items'));
-
-      } else if (event.target.closest('li').className == 'l2') {
-
-        this.ideaArr = arr;
-        localStorage.setItem('ideas', JSON.stringify(arr));
-        this.ideas = JSON.parse(localStorage.getItem('ideas'));
-
+      let subscribe = {
+        id: this.id,
+        service: (serviceText[0].toUpperCase() + serviceText.slice(1)).trim(),
+        cost: (costText[0].toUpperCase() + costText.slice(1)).trim(),
+        periodicity: (periodicityText[0].toUpperCase() + periodicityText.slice(1)).trim()
       }
 
-      let parentNode = event.target.closest('div');
+      this.subscribes.splice(this.editIndex, 1, subscribe);
+      localStorage.setItem('subscribes', JSON.stringify(this.subscribes));
+    },
+    deleteSubscribe(event) {
+      let valueService = event.target.parentElement.children[0].value;
 
-      let blockP = document.createElement('p');
-      blockP.innerHTML = this.nodeValue;
+      this.subscribes = this.subscribes.filter(item => item.service != valueService);
 
-      parentNode.replaceChild(blockP, parentNode.children[0]);
-
-      this.count = 0;
-
+      localStorage.setItem('subscribes', JSON.stringify(this.subscribes));
+      localStorage.setItem('index', JSON.stringify(this.index));
+      event.target.parentElement.remove();
+    },
+    isEnter(event) {
+      if(event.keyCode == 13) {
+        this.addSubscribe();
+      }
     }
   },
   components: {
@@ -265,244 +143,235 @@ export default {
 </script>
 
 <style lang="scss">
-  @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=Montserrat+Alternates&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,400;0,500;0,600;1,300&display=swap');
 
-  *{
+  * {
     margin:0;
     padding:0;
   }
 
-  body {
-    background-color: rgb(255, 245, 232);
-  }
-
   section {
     display: flex;
-    justify-content: space-around;
-    align-items: flex-start;
-    margin-top: 50px; 
-    width: 100%;
     min-height: 600px;
-    height: auto;
-    background-color: rgb(255, 245, 232);
-    h2 {
-      margin-top: 30px;
-      color: rgb(76, 99, 0);
-      font-size: 34px;
-      font-family:  'Marck Script', cursive;
-    }
-
-    #firstList {
+    #informationBlock {
       display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      width: 35%;
-      height: auto;
-      background-color: white;
-      box-shadow: 10px 10px 5px rgb(255, 231, 206);
-      form {
+      flex-direction: column;
+      margin-top: 50px;
+      margin-left: 5%;
+      width: 65%;
+      #informationBlock-referenceInformation {
         display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        width: 90%;
-        input {
-          margin-top: 15px;
-          padding-left: 10px;
-          width: 90%;
-          height: 40px;
-          font-size: 18px;
-          border: 2px solid rgb(76, 99, 0);
-          border-radius: 10px;
-          font-family: 'Montserrat Alternates', sans-serif;
-          outline: none;
-        }
-
-        button {
-          margin-top: 30px;
-          width: 55%;
-          height: 40px;
-          background-color: rgb(255, 222, 139);
-          border: 0;
-          border-radius: 10px;
-          font-size: 16px;
-          font-family: 'Montserrat Alternates', sans-serif;
-          cursor: pointer;
-          transition: 500ms ease;
-        }
-        button:hover {
-          color: white;
-          background-color: rgb(255, 207, 85);
-          box-shadow: 5px 5px 5px rgb(255, 239, 197);
-        }
-        button:active {
-          transform: translate(1px, 3px);
-        }
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0% 15% 0% 5%;
+        width: 80%;
+        height: 50px;
+        font-size: 26px;
+        font-weight: 500;
+        font-family: 'Montserrat Alternates', sans-serif;
       }
-
-      #list1 {
-        display: flex;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        margin-top: 20px;
-        margin-left: 65px;
-        padding-bottom: 40px;
-        width: 90%;
-        font-size: 22px;
-        font-family: 'Marck Script', cursive;
+      ul {
+        width: 100%;
         li {
-          width: 100%;
-          div {
-            display: flex;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            padding-top: 10px;
-            padding-left: 10px;
-            width: 90%;
-            height: auto;
-            border: 0 solid rgb(76, 99, 0);
-            border-width: 0 0 1.5px 0;
-            color: rgb(76, 99, 0);
-            font-family: 'Marck Script', cursive;
-            p {
-              width: 87.5%;
-              font-size: 22px;
-              word-wrap: break-word;
-            }
-
-            textarea {
-              width: 87.5%;
-              border: 0;
-              color: rgb(76, 99, 0);
-              font-size: 22px;
-              font-family: 'Marck Script', cursive;
-              outline: none;
-              resize: none;
-            }
-
-            span {
-              display: flex;
-              justify-content: space-between;
-              width: 12.5%;
-              color: black;
-              font-size: 20px;
-              i {
-                cursor: pointer;
-              }
-            }
-          } 
-        }
-      }
-    }
-
-    #secondList {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      width: 35%;
-      height: auto;
-      background-color: white;
-      box-shadow: 10px 10px 5px rgb(255, 231, 206);
-      h2 {
-        margin-top: 30px;
-        color: rgb(76, 99, 0);
-        font-size: 34px;
-        font-family:  'Marck Script', cursive;
-      }
-
-      form {
           display: flex;
-          justify-content: center;
-          flex-wrap: wrap;
-          width: 90%;
-          input {
-            margin-top: 15px;
-            padding-left: 10px;
-            width: 90%;
-            height: 40px;
-            font-size: 18px;
-            border: 2px solid rgb(76, 99, 0);
-            border-radius: 10px;
-            font-family: 'Montserrat Alternates', sans-serif;
-            outline: none;
+          justify-content: space-around;
+          align-items: center;
+          margin-top: 50px;
+          font-size: 22px;
+          font-family: 'Montserrat', sans-serif;
+          p {
+            width: 20%;
+            text-align: center;
+            word-wrap: break-word;
           }
-
-          button {
-            margin-top: 30px;
-            width: 60%;
-            height: 40px;
-            background-color: rgb(255, 222, 139);
+          p:nth-child(2) {
+            width: 30%;
+          }
+          p:nth-child(3) {
+            width: 40%;
+          }
+          input {
+            width: 20%;
+            font-size: 22px;
+            font-family: 'Montserrat', sans-serif;
             border: 0;
-            border-radius: 10px;
-            font-size: 16px;
-            font-family: 'Montserrat Alternates', sans-serif;
+            outline: none;
+            text-align: center;
+          }
+          input:nth-child(2) {
+            width: 30%;
+          }
+          input:nth-child(3) {
+            width: 40%;
+          }
+          i {
+            width: 5%;
+            font-size: 24px;
             cursor: pointer;
             transition: 500ms ease;
           }
-          button:hover {
-            color: white;
-            background-color: rgb(255, 207, 85);
-            box-shadow: 5px 5px 5px rgb(255, 239, 197);
+          i:hover {
+            color: #ffe100;
           }
-          button:active {
-            transform: translate(1px, 3px);
+          .inactive {
+            display: none;
           }
         }
       }
-
-      #list2 {
+      #informationBlock-addBlock {
         display: flex;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        margin-top: 20px;
-        margin-left: 65px;
-        padding-bottom: 40px;
-        width: 90%;
-        font-size: 22px;
-        font-family: 'Marck Script', cursive;
-        li {
-          width: 100%;
-          div {
-            display: flex;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            padding-top: 10px;
-            padding-left: 10px;
-            width: 90%;
-            height: auto;
-            border: 0 solid rgb(76, 99, 0);
-            border-width: 0 0 1.5px 0;
-            color: rgb(76, 99, 0);
-            font-family: 'Marck Script', cursive;
-            p {
-              width: 87.5%;
-              font-size: 22px;
-              word-wrap: break-word;
-            }
-
-            textarea {
-              width: 87.5%;
-              border: 0;
-              color: rgb(76, 99, 0);
-              font-size: 22px;
-              font-family: 'Marck Script', cursive;
-              outline: none;
-              resize: none;
-            }
-          
-            span {
-              display: flex;
-              justify-content: space-between;
-              width: 12.5%;
-              color: black;
-              font-size: 20px;
-              i {
-                cursor: pointer;
-              }
-            }
-          }
+        align-items: center;
+        margin-top: 50px;
+        height: 50px;
+        i {
+          margin-left: 5%;
+          width: 50px;
+          font-size: 44px;
+          cursor: pointer;
+          transition: 500ms ease;
+        }
+        i:hover {
+          color: #ffe100;
+        }
+        p {
+          margin-left: 20px;
+          font-size: 22px;
+          font-family: 'Montserrat', sans-serif;
         }
       }
     }
+    aside {
+      margin-top: 40px;
+      width: 25%;
+    }
+  }
+
+  #addSubscribeBlock {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      left: 50%;
+      top: 50%; 
+      margin-left: -250px; 
+      margin-top: -250px;
+      width: 500px;
+      height: 500px;
+      background-color: #272727;
+      color: #fffcf4;
+      border: 3px solid #fffcf4;
+      border-radius: 20px;
+      h3 {
+        font-size: 24px;
+        font-family: 'Montserrat', sans-serif;
+      }
+      input {
+        margin-top: 40px;
+        padding-left: 10px;
+        width: 80%;
+        height: 35px;
+        background-color: #fffcf4;
+        border: 0;
+        border-radius: 5px;
+        color: #272727;
+        font-size: 20px;
+        font-family: 'Montserrat', sans-serif;
+        outline: none;
+      }
+      #buttonsBlock {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 50px;
+        margin-left: 13%;
+        width: 70%;
+        button {
+          height: 40px;
+          background-color: #272727;
+          border: 2px solid #fffcf4;
+          border-radius: 10px;
+          color: #fffcf4;
+          font-size: 18px;
+          font-family: 'Montserrat', sans-serif;
+          cursor: pointer;
+          transition: 500ms ease;
+        }
+        button:active {
+          transform: translateY(5px);
+        }
+        #buttonsBlock-cancel {
+          width: 120px;
+        }
+        #buttonsBlock-cancel:hover {
+          background-color: rgb(200, 21, 21);
+        }
+        #buttonsBlock-add {
+          width: 210px;
+        }
+        #buttonsBlock-add:hover {
+          background-color: rgb(32, 147, 32);
+        }
+      }
+    }
+
+.modalActive {
+  pointer-events: none;
+  filter: brightness(0.5);
+}
+
+.darkTheme {
+  background-color: #272727;
+  div {
+    #informationBlock-referenceInformation {
+      border: 0px solid #fffcf4;
+      border-width: 0px 0px 3px;
+      color: #fffcf4;
+    }
+    ul {
+      li {
+        color: #fffcf4;
+        input {
+          background-color: #272727;
+          color: #fffcf4;
+        }
+      }
+    }
+    #informationBlock-addBlock {
+      color: #fffcf4;
+    }
+  }
+  aside {
+    border: 0px solid #fffcf4;
+    border-width: 0px 0px 0px 3px;
+  }
+}
+
+.lightTheme {
+  background-color: #fffcf4;
+  div {
+    #informationBlock-referenceInformation {
+      border: 0px solid #272727;
+      border-width: 0px 0px 3px;
+      color: #272727;
+    }
+    ul {
+      li {
+        color: #272727;
+        input {
+          background-color: #fffcf4;
+          color: #272727;
+        }
+      }
+    }
+    #informationBlock-addBlock {
+      color: #272727;
+    }
+  }
+  aside {
+    border: 0px solid #272727;
+    border-width: 0px 0px 0px 3px;
+  }
+}
+
 </style>

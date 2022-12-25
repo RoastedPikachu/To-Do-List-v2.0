@@ -1,6 +1,6 @@
 <template>
-  <footer>
-    <a href="https://github.com/RoastedPikachu">© Сайт создан: RoastedPikachu</a>
+  <footer class="footerDarkTheme">
+    <p>© Сайт создан: <a href="https://github.com/RoastedPikachu">RoastedPikachu</a></p>
     <p>2022</p>
   </footer>
 </template>
@@ -8,18 +8,10 @@
 <script>
 export default {
   name: 'FooterComp',
-  data(){
-    return {
-
-    }
-  },
-  methods: {
-
-  }
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
   @import url('https://fonts.googleapis.com/css2?family=Marck+Script&family=Montserrat+Alternates&display=swap');
 
   footer {
@@ -27,27 +19,42 @@ export default {
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-top: 50px;
     width: 100%;
-    height: 70px;
-    background: rgb(76, 99, 0);
-    color: white;
+    height: 75px;
     font-size: 16px;
+    font-weight: 600;
     font-family: 'Montserrat Alternates', sans-serif;
-
     p {
       margin-top: 5px;
       width: 100%;
       text-align: center;
+      a {
+        text-decoration: none;
+        transition: 500ms ease;
+      }
+      a:hover {
+        color: #ffe100;
+      }
     }
+  }
 
-    a {
-      color: white;
-      text-decoration: none;
-      transition: 500ms ease;
+  .footerDarkTheme {
+    background-color: #272727;
+    color: #fffcf4;
+    p {
+      a {
+        color: #fffcf4;
+      }
     }
-    a:hover {
-      transform: scale(1.05);
+  }
+
+  .footerLightTheme {
+    background-color: #fffcf4;
+    color: #272727;
+    p {
+      a {
+        color: #272727;
+      }
     }
   }
 </style>
